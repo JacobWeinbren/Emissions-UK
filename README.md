@@ -25,7 +25,7 @@ This study integrates data from three sources - Output Area Classification, the 
 
 Clone the repository and navigate into it:
 
-````bash
+```bash
 git clone <repository-url>
 cd emissions-uk```
 
