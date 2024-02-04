@@ -82,7 +82,6 @@ const gradientStyle = generateGradient();
 	import { GeoJsonLayer } from "@deck.gl/layers";
 	const MAPBOX_TOKEN = import.meta.env.PUBLIC_MAPBOX_TOKEN;
 
-	// Adjusted generateColorExpression to account for different modes
 	function generateColorExpression(feature) {
 		return chroma
 			.scale([
@@ -121,7 +120,7 @@ const gradientStyle = generateGradient();
 			}
 
 			const tons = object.properties["total"].toFixed(1);
-			let hoverText = `This area consumes <span id="times" class="font-semibold">${tons} times</span> tons worth of CO₂ a year.`;
+			let hoverText = `The average person here consumes <span id="times" class="font-semibold">${tons} times</span> tons worth of CO₂ a year.`;
 
 			infoDiv.innerHTML = hoverText;
 		}
