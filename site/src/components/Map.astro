@@ -2,6 +2,8 @@
 import chroma from "chroma-js";
 
 function generateGradient() {
+	const domainStart = 7;
+	const domainEnd = 11.8;
 	const colorScale = chroma
 		.scale([
 			"#0571b0ff",
@@ -11,8 +13,12 @@ function generateGradient() {
 			"#ca0020ff",
 		])
 		.mode("lch")
-		.domain([7, 11.8]);
-	const stops = Array.from({ length: 5 }, (_, i) => colorScale(i * 5).hex());
+		.domain([domainStart, domainEnd]);
+	const numberOfStops = 5;
+	const stepSize = (domainEnd - domainStart) / (numberOfStops - 1);
+	const stops = Array.from({ length: numberOfStops }, (_, i) =>
+		colorScale(domainStart + i * stepSize).hex()
+	);
 	return `linear-gradient(to right, ${stops.join(", ")})`;
 }
 
