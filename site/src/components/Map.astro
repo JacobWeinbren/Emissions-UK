@@ -120,7 +120,7 @@ const gradientStyle = generateGradient();
 			}
 
 			const tons = object.properties["total"].toFixed(1);
-			let hoverText = `The average person here consumes <span id="times" class="font-semibold">${tons} times</span> tons worth of CO₂ a year.`;
+			let hoverText = `The average person here consumes <span id="times" class="font-semibold">${tons}</span> tons worth of CO₂ a year.`;
 
 			infoDiv.innerHTML = hoverText;
 		}
@@ -155,5 +155,11 @@ const gradientStyle = generateGradient();
 		document.getElementById("geocoder").appendChild(geocoder.onAdd(map));
 
 		map.addControl(new mapboxgl.NavigationControl());
+
+		map.addControl(
+			new mapboxgl.AttributionControl({
+				compact: true,
+			})
+		);
 	});
 </script>
