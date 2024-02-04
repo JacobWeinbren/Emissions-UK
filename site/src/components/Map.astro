@@ -1,0 +1,164 @@
+---
+import chroma from "chroma-js";
+
+function generateGradient() {
+	const colorScale = chroma
+		.scale([
+			"#0571b0ff", 
+			"#92c5deff", 
+			"#f7f7f7ff", 
+			"#f4a582ff",
+			"#ca0020ff", 
+		])
+		.mode("lch")
+		.domain([0, 18]); 
+	const stops = Array.from({ length: 5 }, (_, i) => colorScale(i * 5).hex());
+	return `linear-gradient(to right, ${stops.join(", ")})`;
+}
+
+const gradientStyle = generateGradient();
+---
+
+<style>
+	#gradient-bar {
+		background: linear-gradient(
+			to right,
+			rgb(16, 48, 94),
+			rgb(136, 152, 175),
+			rgb(255, 255, 255),
+			rgb(210, 153, 139),
+			rgb(165, 50, 23)
+		);
+	}
+
+	#value-indicator-line {
+		transition: left 300ms ease-in-out;
+	}
+</style>
+
+<div id="map" class="w-screen h-screen"></div>
+<div id="geocoder" class="geocoder fixed top-4 left-4 z-10"></div>
+
+<div
+	class="sm:w-[500px] text-sm w-full flex flex-col gap-2 absolute bottom-10 rounded-md z-10 bg-white p-4 left-1/2 transform -translate-x-1/2"
+>
+	<div>
+		<p class="text-md font-semibold" id="title">
+			House Prices as a Multiple of Median Salary
+		</p>
+		<p class="mb-2">England and Wales</p>
+	</div>
+
+	<div>
+		<div class="w-full h-4 rounded" style={`background: ${gradientStyle};`}>
+		</div>
+		<div class="flex justify-between">
+			<span id="min">0x</span>
+			<span id="max">20x</span>
+		</div>
+	</div>
+
+	<div id="meta">
+		The median house in <span id="year" class="font-semibold">1995</span>
+		cost <span id="times" class="font-semibold">5 times</span> the median salary.
+		The median salary was <span id="salary" class="font-semibold">£0</span>.
+	</div>
+	<div id="hover">Hover over a point to see its value.</div>
+
+	<button
+		id="pricesMapButton"
+		class="border p-1 rounded hover:bg-gray-100 active:bg-gray-300"
+	>
+		Prices Map
+	</button>
+	<button
+		id="changeMapButton"
+		class="border p-1 rounded hover:bg-gray-100 active:bg-gray-300"
+	>
+		Price Change Map
+	</button>
+</div>
+
+<script>
+	import mapboxgl from "mapbox-gl";
+	import { MapboxLayer } from "@deck.gl/mapbox";
+	import { MVTLayer } from "@deck.gl/geo-layers";
+	import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
+	import chroma from "chroma-js";
+	import { GeoJsonLayer } from "@deck.gl/layers";
+
+	declare global {
+		interface Window {
+			loadNewData: () => void;
+		}
+	}
+
+	const MAPBOX_TOKEN = import.meta.env.PUBLIC_MAPBOX_TOKEN;
+
+	// Adjusted generateColorExpression to account for different modes
+	function generateColorExpression(feature) {
+		return chroma
+			.scale([
+				"#0571b0ff",
+				"#92c5deff",
+				"#f7f7f7ff",
+				"#f4a582ff", 
+				"#ca0020ff",
+			])
+			.mode("lch")
+			.domain([0, 18])(feature.properties["total"]) /
+			.rgb();
+	}
+
+	const map = new mapboxgl.Map({
+		container: "map",
+		center: [-0.2, 51.5],
+		zoom: 9,
+		minZoom: 9,
+		maxZoom: 17,
+		style: "mapbox://styles/mapbox/light-v11?optimize=true",
+		accessToken: MAPBOX_TOKEN,
+		antialias: true,
+		projection: { name: "mercator" },
+	});
+
+	map.on("load", () => {
+		const firstLabelLayerId = map
+			.getStyle()
+			.layers.find((layer) => layer.type === "symbol").id;
+
+		function updateLayerData() {
+			const layerId = "map";
+			if (map.getLayer(layerId)) {
+				map.removeLayer(layerId);
+			}
+
+			const layer = new MapboxLayer({
+				id: layerId,
+				type: MVTLayer,
+				data: layerDataUrl,
+				getLineColor: (feature) => generateColorExpression(feature),
+				getFillColor: (feature) => generateColorExpression(feature),
+				getPointRadius: 30,
+				opacity: 0.3,
+				lineWidthMinPixels: 1,
+				pickable: true,
+				renderSubLayers: (props) => {
+					return new GeoJsonLayer(props);
+				},
+			});
+
+			map.addLayer(layer, firstLabelLayerId);
+		}
+
+		updateLayerData();
+
+		const geocoder = new MapboxGeocoder({
+			accessToken: MAPBOX_TOKEN,
+			mapboxgl: mapboxgl,
+		});
+		document.getElementById("geocoder").appendChild(geocoder.onAdd(map));
+
+		map.addControl(new mapboxgl.NavigationControl());
+	});
+</script>
