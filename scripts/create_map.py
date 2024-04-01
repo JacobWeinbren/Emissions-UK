@@ -26,8 +26,10 @@ def update_geojson_features(geojson_data, csv_data):
     for feature in tqdm(geojson_data["features"], desc="Updating features"):
         geo_code = feature["properties"]["geo_code"]
         if geo_code in csv_data:
-            feature["properties"].update(csv_data[geo_code]["attributes"])
-            feature["properties"]["total"] = csv_data[geo_code]["total"]
+            feature["properties"] = {
+                "geo_code": geo_code,
+                "total": csv_data[geo_code]["total"],
+            }
         else:
             print(geo_code)
     print("GeoJSON features updated successfully.")

@@ -10,7 +10,7 @@ def calculate_median_total(csv_path):
 
     with open(csv_path, newline="") as csvfile:
         reader = csv.reader(csvfile)
-        headers = next(reader)  # Skip the header row
+        next(reader)  # Skip the header row
 
         for row in reader:
             # Convert all but the first two columns (Geographic Code and population) to floats and sum them

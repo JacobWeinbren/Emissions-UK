@@ -14,13 +14,6 @@ This study integrates data from three sources - Output Area Classification, the 
 
 [2011 Census Geography Boundaries (Lower Layer Super Output Areas and Data Zones)](https://statistics.ukdataservice.ac.uk/dataset/2011-census-geography-boundaries-lower-layer-super-output-areas-and-data-zones)
 
-## Prerequisites
-
--   Python 3.x
--   Pandas library
--   tqdm library
--   Node.js and npm (for the frontend)
-
 ## Setup
 
 Clone the repository and navigate into it:
@@ -56,16 +49,13 @@ cd emissions-uk
 
     ```bash
     tippecanoe --output=output/emissions.mbtiles --generate-ids --force --no-feature-limit --no-tile-size-limit --detect-shared-borders --coalesce-fraction-as-needed --coalesce-densest-as-needed --coalesce-smallest-as-needed --coalesce --reorder --minimum-zoom=0 --maximum-zoom=17 -r1 output/updated_map.geojson
-
     ```
 
-5. Use [OpenMapTiles](https://openmaptiles.org/docs/host/tileserver-gl/) for hosting. Run the following Docker command (-d for running in the background):
+5. Data Analysis:
 
     ```bash
-    docker run -it -d -v /root/map-server:/data -p 8080:8080 maptiler/tileserver-gl -c /data/config.json
+    python scripts/median.py
     ```
-
-6. Data Binning and Analysis:
 
 ### Frontend Setup
 
