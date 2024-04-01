@@ -1,28 +1,21 @@
 ---
 import chroma from "chroma-js";
 
-function generateGradient() {
-	const domainStart = 7;
-	const domainEnd = 11.8;
-	const colorScale = chroma
-		.scale([
-			"#0571b0ff",
-			"#92c5deff",
-			"#f7f7f7ff",
-			"#f4a582ff",
-			"#ca0020ff",
-		])
-		.mode("lch")
-		.domain([domainStart, domainEnd]);
-	const numberOfStops = 5;
-	const stepSize = (domainEnd - domainStart) / (numberOfStops - 1);
-	const stops = Array.from({ length: numberOfStops }, (_, i) =>
-		colorScale(domainStart + i * stepSize).hex()
-	);
-	return `linear-gradient(to right, ${stops.join(", ")})`;
-}
+const MAPBOX_TOKEN = import.meta.env.PUBLIC_MAPBOX_TOKEN;
 
-const gradientStyle = generateGradient();
+const domainStart = 7;
+const domainEnd = 11.8;
+const colorScale = chroma
+	.scale(["#0571b0ff", "#92c5deff", "#f7f7f7ff", "#f4a582ff", "#ca0020ff"])
+	.mode("lch")
+	.domain([domainStart, domainEnd]);
+
+const numberOfStops = 5;
+const stepSize = (domainEnd - domainStart) / (numberOfStops - 1);
+const stops = Array.from({ length: numberOfStops }, (_, i) =>
+	colorScale(domainStart + i * stepSize).hex()
+);
+const gradientStyle = `linear-gradient(to right, ${stops.join(", ")})`;
 ---
 
 <div id="map" class="w-screen h-screen"></div>
@@ -58,27 +51,8 @@ const gradientStyle = generateGradient();
 
 <script>
 	import mapboxgl from "mapbox-gl";
-	import { MapboxLayer } from "@deck.gl/mapbox";
-	import { MVTLayer } from "@deck.gl/geo-layers";
 	import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
-	import chroma from "chroma-js";
-	import { GeoJsonLayer } from "@deck.gl/layers";
 	const MAPBOX_TOKEN = import.meta.env.PUBLIC_MAPBOX_TOKEN;
-
-	const pregeneratedScale = chroma
-		.scale([
-			"#0571b0ff",
-			"#92c5deff",
-			"#f7f7f7ff",
-			"#f4a582ff",
-			"#ca0020ff",
-		])
-		.mode("lch")
-		.domain([7, 11.8]);
-
-	function generateColorExpression(feature) {
-		return pregeneratedScale(feature.properties["total"]).rgb();
-	}
 
 	const map = new mapboxgl.Map({
 		container: "map",
@@ -97,40 +71,56 @@ const gradientStyle = generateGradient();
 			.getStyle()
 			.layers.find((layer) => layer.type === "symbol").id;
 
-		function handleHover({ object }) {
+		map.addSource("emissions", {
+			type: "vector",
+			tiles: [
+				"https://map.jacobweinbren.workers.dev/emissions/{z}/{x}/{y}.mvt",
+			],
+			minzoom: 0,
+			maxzoom: 17,
+		});
+
+		map.addLayer(
+			{
+				id: "emissions-layer",
+				type: "fill",
+				source: "emissions",
+				"source-layer": "updated_map",
+				paint: {
+					"fill-color": [
+						"interpolate",
+						["linear"],
+						["get", "total"],
+						7,
+						"#0571b0",
+						8.45,
+						"#92c5de",
+						9.9,
+						"#f7f7f7",
+						10.9,
+						"#f4a582",
+						11.8,
+						"#ca0020",
+					],
+					"fill-opacity": 0.8,
+				},
+				layout: {
+					visibility: "visible",
+				},
+			},
+			firstLabelLayerId
+		);
+
+		map.on("mousemove", "emissions-layer", (e) => {
 			const infoDiv = document.querySelector("#hover");
-			if (!object) {
+			if (e.features.length === 0) {
 				return;
 			}
 
-			const tons = object.properties["total"].toFixed(1);
-			let hoverText = `The average person here consumes <span class="font-semibold">${tons} tons</span> worth of CO₂ a year.`;
-
-			infoDiv.innerHTML = hoverText;
-		}
-
-		function updateLayerData() {
-			const layerId = "map";
-			if (map.getLayer(layerId)) {
-				map.removeLayer(layerId);
-			}
-
-			const layer = new MapboxLayer({
-				id: layerId,
-				type: MVTLayer,
-				data: "https://map.kafkaesque.blog/data/emissions/{z}/{x}/{y}.pbf",
-				getFillColor: (feature) => generateColorExpression(feature),
-				pickable: true,
-				onHover: handleHover,
-				renderSubLayers: (props) => {
-					return new GeoJsonLayer(props);
-				},
-			});
-
-			map.addLayer(layer, firstLabelLayerId);
-		}
-
-		updateLayerData();
+			const feature = e.features[0];
+			const tons = feature.properties["total"].toFixed(1);
+			infoDiv.innerHTML = `The average person here consumes <span class="font-semibold">${tons} tons</span> worth of CO₂ a year.`;
+		});
 
 		const geocoder = new MapboxGeocoder({
 			accessToken: MAPBOX_TOKEN,
