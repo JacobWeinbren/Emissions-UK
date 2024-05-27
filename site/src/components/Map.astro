@@ -1,8 +1,6 @@
 ---
 import chroma from "chroma-js";
 
-const MAPBOX_TOKEN = import.meta.env.PUBLIC_MAPBOX_TOKEN;
-
 const domainStart = 7;
 const domainEnd = 11.8;
 const colorScale = chroma
@@ -58,7 +56,7 @@ const gradientStyle = `linear-gradient(to right, ${stops.join(", ")})`;
 		container: "map",
 		center: [-4.2, 55.8],
 		zoom: 9,
-		minZoom: 5.5,
+		minZoom: 5,
 		maxZoom: 17,
 		style: "mapbox://styles/mapbox/light-v11?optimize=true",
 		accessToken: MAPBOX_TOKEN,
@@ -74,7 +72,7 @@ const gradientStyle = `linear-gradient(to right, ${stops.join(", ")})`;
 		map.addSource("emissions", {
 			type: "vector",
 			tiles: [
-				"https://map.jacobweinbren.workers.dev/emissions/{z}/{x}/{y}.mvt",
+				"https://map.jacobweinbren.workers.dev/uk-emissions/{z}/{x}/{y}.mvt",
 			],
 			minzoom: 0,
 			maxzoom: 17,
@@ -85,7 +83,7 @@ const gradientStyle = `linear-gradient(to right, ${stops.join(", ")})`;
 				id: "emissions-layer",
 				type: "fill",
 				source: "emissions",
-				"source-layer": "updated_map",
+				"source-layer": "maplayer",
 				paint: {
 					"fill-color": [
 						"interpolate",

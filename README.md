@@ -48,7 +48,22 @@ cd emissions-uk
 4. Generate map tiles (ensure `tippecanoe` is installed):
 
     ```bash
-    tippecanoe --output=output/emissions.mbtiles --generate-ids --force --no-feature-limit --no-tile-size-limit --detect-shared-borders --coalesce-fraction-as-needed --coalesce-densest-as-needed --coalesce-smallest-as-needed --coalesce --reorder --minimum-zoom=0 --maximum-zoom=17 -r1 output/updated_map.geojson
+    tippecanoe --output="output/uk-emissions.pmtiles" \
+        --layer="maplayer" \
+        --no-feature-limit \
+        --no-tile-size-limit \
+        --detect-shared-borders \
+        --coalesce-fraction-as-needed \
+        --coalesce-densest-as-needed \
+        --coalesce-smallest-as-needed \
+        --increase-gamma-as-needed \
+        --coalesce \
+        --reorder \
+        --minimum-zoom=0 \
+        --maximum-zoom=17 \
+        --force \
+        --simplification=20 \
+        output/updated_map.geojson
     ```
 
 5. Data Analysis:
